@@ -1,9 +1,9 @@
 package done.it.moview.base
 
-import android.support.v7.app.AppCompatActivity
+import dagger.android.support.DaggerAppCompatActivity
 import javax.inject.Inject
 
-abstract class BaseActivity<P : MvpPresenter> : AppCompatActivity(), MvpView {
+abstract class BaseActivity<P : MvpPresenter> : DaggerAppCompatActivity(), MvpView {
 
     @Inject lateinit var presenter: P
 }

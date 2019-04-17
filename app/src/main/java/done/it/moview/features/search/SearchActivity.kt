@@ -1,21 +1,71 @@
 package done.it.moview.features.search
 
-import dagger.Binds
-import dagger.Module
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
+import android.view.View.GONE
+import android.view.View.VISIBLE
+import done.it.moview.R
 import done.it.moview.base.BaseActivity
-import done.it.moview.base.BasePresenter
+import done.it.moview.data.entities.MovieListItem
+import done.it.moview.extentions.addTextWatcher
+import done.it.moview.extentions.hideSoftKeyboard
+import done.it.moview.movieAdapter.MovieAdapter
+import kotlinx.android.synthetic.main.activity_search.editSearch
+import kotlinx.android.synthetic.main.activity_search.imageBack
+import kotlinx.android.synthetic.main.activity_search.imageClear
+import kotlinx.android.synthetic.main.activity_search.progressLoading
+import kotlinx.android.synthetic.main.activity_search.recyclerMovies
+import kotlinx.android.synthetic.main.activity_search.textNoResults
 import javax.inject.Inject
 
-class SearchActivity : BaseActivity<Presenter>(), View
+class SearchActivity : BaseActivity<Presenter>(), View {
 
-class SearchPresenter @Inject constructor() : BasePresenter<View>(), Presenter
+    companion object {
+        fun start(context: Context) = context.startActivity(Intent(context, SearchActivity::class.java))
+    }
 
-@Module
-interface SearchModule {
+    @Inject lateinit var adapter: MovieAdapter
 
-    @Binds
-    fun view(view: SearchActivity): View
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_search)
 
-    @Binds
-    fun presenter(presenter: SearchPresenter): Presenter
+        recyclerMovies.adapter = adapter
+
+        editSearch.apply {
+            addTextWatcher { presenter.onTextChanged(it) }
+            setOnEditorActionListener { _, _, _ ->
+                hideSoftKeyboard()
+                true
+            }
+        }
+
+        imageBack.setOnClickListener { onBackPressed() }
+        imageClear.setOnClickListener { editSearch.setText("") }
+
+        progressLoading.visibility = GONE
+        textNoResults.visibility = GONE
+        recyclerMovies.visibility = GONE
+    }
+
+    override fun showLoading() {
+        progressLoading.visibility = VISIBLE
+        textNoResults.visibility = GONE
+        recyclerMovies.visibility = GONE
+    }
+
+    override fun showNoResults() {
+        progressLoading.visibility = GONE
+        textNoResults.visibility = VISIBLE
+        recyclerMovies.visibility = GONE
+    }
+
+    override fun showResults(movies: List<MovieListItem>) {
+        adapter.movies = movies
+
+        progressLoading.visibility = GONE
+        textNoResults.visibility = GONE
+        recyclerMovies.visibility = VISIBLE
+    }
 }
